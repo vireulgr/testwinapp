@@ -110,3 +110,5 @@ void TEST_logOverArray() {
     logOverArray( arr, N );
 }
 
+
+// vim: ff=dos

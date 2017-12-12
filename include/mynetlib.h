@@ -2,6 +2,11 @@
 #define _MYNETLIB_H_
 #include <stdlib.h>
 
+#define DEFAULT_PORT "27015"
+//#define DEFAULT_CON_ADDR "127.0.0.1"
+#define DEFAULT_CON_ADDR "192.168.13.207"
+
+
 void getFamilyByCode( char *buf, size_t bufSize, int code ) {
     switch( code ) {
         case 0: strncpy( buf, "AF_UNSPEC", bufSize ); break;
@@ -30,8 +35,8 @@ void getProtocolByCode( char *buf, size_t bufSize, int code ) {
 }
 void printAddrInfo( struct addrinfo * ptrAInf ) {
     
-    for( struct addinfo * tmp = ptrAInf;tmp != NULL; tmp = tmp->ai_next ) {
-    //while( tmp != NULL ) {
+    for( struct addrinfo * tmp = ptrAInf; tmp != NULL; tmp = tmp->ai_next ) {
+
         char buf[512];
         getFamilyByCode( buf, 512, tmp->ai_family );
         printf( "    family: %s (%d)\n",    buf, tmp->ai_family );
@@ -48,8 +53,8 @@ void printAddrInfo( struct addrinfo * ptrAInf ) {
         printf( " canonname: %s\n",         tmp->ai_canonname );
         printf( " inet addr: 0x%x\n", ((sockaddr_in*)tmp->ai_addr)->sin_addr.s_addr );
 
-        //tmp = tmp->ai_next;
     }
 }
 
 #endif
+// vim: ff=dos

@@ -62,3 +62,4 @@ void TEST_logOverArray();
 
 
 #endif
+// vim: ff=dos
