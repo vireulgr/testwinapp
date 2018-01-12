@@ -22,7 +22,7 @@ struct addrinfo * getServerAddrInfo( ) {
     int res = 0;
 
     /// Do we really need getaddrinfo for the server part?????
-    hints.ai_family     = AF_INET;
+    hints.ai_family     = AF_INET; // TODO make this IPv4/IPv6 independent
     hints.ai_socktype   = SOCK_STREAM;
     hints.ai_protocol   = IPPROTO_TCP;
     hints.ai_flags      = AI_PASSIVE;
@@ -37,6 +37,50 @@ struct addrinfo * getServerAddrInfo( ) {
     return ptrAInf;
 }
 
+long long simpleSend( SOCKET sock, char const * sendBuf, size_t const bufLen ) {
+    size_t offset = 0;
+    int res = 0;
+    do {
+        res = send( sock, sendBuf + offset, bufLen, 0 );
+        if( res > 0 ) {
+            offset += res;
+            printf( "sent  % 12d bytes\ntotal % 12zd bytes", res, offset );
+        }
+        else if( res == 0 ) {
+            puts( "closing connection" );
+        }
+        else if( res == SOCKET_ERROR ) {
+            printf( "send failed! %d\n", WSAGetLastError() );
+            closesocket( sock );
+            return res;
+        }
+    } while( res > 0 );
+    return offset;
+}
+
+long long simpleReceive( SOCKET sock, char * recvBuf, size_t const bufLen ) {
+    int res = 0;
+    size_t offset = 0;
+    do {
+        res = recv( sock, recvBuf + offset, bufLen, 0 );
+        if( res > 0 ) {
+            offset += res;
+            printf( "received % 12d bytes\ntotal    % 12zd bytes", res, offset );
+        }
+        else if( res == 0 ) {
+            puts( "closing connection" );
+        }
+        else if( res == SOCKET_ERROR ) {
+            printf( "recv failed! %d\n", WSAGetLastError() );
+            closesocket( sock );
+            return res;
+        }
+    } while( res > 0 );
+
+    recvBuf[offset + 1] = '\0';
+    return offset;
+}
+
 int main( int argc, char * argv[] ) {
 
     WSADATA wsadata;
@@ -49,23 +93,6 @@ int main( int argc, char * argv[] ) {
 /*
     SERVER PART
 */
-    // struct addrinfo hints, *ptrAInf, *tmp;
-    // ptrAInf = NULL;
-    // tmp = NULL;
-    // memset( &hints, 0, sizeof( struct addrinfo ) );
-
-    // /// Do we really need getaddrinfo for the server part?????
-    // hints.ai_family     = AF_INET;
-    // hints.ai_socktype   = SOCK_STREAM;
-    // hints.ai_protocol   = IPPROTO_TCP;
-    // hints.ai_flags      = AI_PASSIVE;
-
-    // res = getaddrinfo( NULL, DEFAULT_PORT, &hints, &ptrAInf ); 
-    // if( res != 0 ) {
-    //     printf( "getaddrinfo failed! res = %d\n", res );       
-    //     WSACleanup();
-    //     return 1;
-    // }
     struct addrinfo * tmp = NULL;
     struct addrinfo * ptrAInf = getServerAddrInfo();
 
@@ -112,37 +139,44 @@ int main( int argc, char * argv[] ) {
 
     // RECEIVE
     size_t const bufLen = 2048;
-    size_t offset = 0;
+    //size_t offset = 0;
     char * recvBuf;
     recvBuf = new char[ bufLen ];
-    do {
-        res = recv( clientSocket, recvBuf + offset, bufLen, 0 );
-        if( res > 0 ) {
-            offset += res;
-            printf( "received % 12d bytes\ntotal    % 12zd bytes", res, offset );
-        }
-        else if( res == 0 ) {
-            puts( "closing connection" );
-        }
-        else if( res < 0 ) {
-            printf( "recv failed! %d\n", WSAGetLastError() );
-            closesocket( clientSocket );
-            return 1;
-        }
-    } while( res > 0 );
+    //do {
+    //    res = recv( clientSocket, recvBuf + offset, bufLen, 0 );
+    //    if( res > 0 ) {
+    //        offset += res;
+    //        printf( "received % 12d bytes\ntotal    % 12zd bytes", res, offset );
+    //    }
+    //    else if( res == 0 ) {
+    //        puts( "closing connection" );
+    //    }
+    //    else if( res < 0 ) {
+    //        printf( "recv failed! %d\n", WSAGetLastError() );
+    //        closesocket( clientSocket );
+    //        return 1;
+    //    }
+    //} while( res > 0 );
 
-    recvBuf[offset + 1] = '\0';
-    printf( "received: %s\n", recvBuf );
+    res = simpleReceive( clientSocket, recvBuf, bufLen );
+    //recvBuf[offset + 1] = '\0';
+    if( res != SOCKET_ERROR )  {
+        printf( "received: %s\n", recvBuf );
+    }
+    else {
+        printf( "error receive \n" );
+    }
     delete[] recvBuf;
 
     // SEND
     char *sendBuf = "String from SERVER to send to CLIENT";
 
-    res = send( clientSocket, sendBuf, strlen( sendBuf ), 0 );
+    // res = send( clientSocket, sendBuf, strlen( sendBuf ), 0 );
+    res = simpleSend( clientSocket, sendBuf, strlen( sendBuf ) );
     if( res == SOCKET_ERROR ) {
         printf( "send failed! %ld", WSAGetLastError() );
         WSACleanup();
-        closesocket( clientSocket );
+        //closesocket( clientSocket ); socket already closed by simpleSend
         return 1;
     }
 

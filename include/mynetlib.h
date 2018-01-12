@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 #define DEFAULT_PORT "27015"
-//#define DEFAULT_CON_ADDR "127.0.0.1"
-#define DEFAULT_CON_ADDR "192.168.13.207"
+#define DEFAULT_CON_ADDR "127.0.0.1"
+//#define DEFAULT_CON_ADDR "192.168.13.207"
 
 
 void getFamilyByCode( char *buf, size_t bufSize, int code ) {

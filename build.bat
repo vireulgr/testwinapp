@@ -1,10 +1,8 @@
 @echo off
 cd client
-echo " "
-echo "  vvv  CLIENT"
+echo    CLIENT
 cmd /D /C .\make.bat
-echo " " 
-echo "  vvv  SERVER"
+echo    SERVER
 cd ..\server
 cmd /D /C .\make.bat
 cd ..\
