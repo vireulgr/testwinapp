@@ -14,28 +14,6 @@
 
 #pragma comment( lib, "Ws2_32.lib" )
 
-struct addrinfo * getClientAddrInfo( ) {
-
-    struct addrinfo hints, *ptrAInf;
-    ptrAInf = NULL;
-    memset( &hints, 0, sizeof( struct addrinfo ) );
-    int res = 0;
-
-    /// Do we really need getaddrinfo for the server part?????
-    hints.ai_family     = AF_INET;
-    hints.ai_socktype   = SOCK_STREAM;
-    hints.ai_protocol   = IPPROTO_TCP;
-    hints.ai_flags      = AI_PASSIVE;
-
-    res = getaddrinfo( NULL, DEFAULT_PORT, &hints, &ptrAInf ); 
-    if( res != 0 ) {
-        printf( "getaddrinfo failed! res = %d\n", res );       
-        WSACleanup();
-        return NULL;
-    }
-
-    return ptrAInf;
-}
 
 int main( int argc, char * argv[] ) {
 
