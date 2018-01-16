@@ -3,3 +3,9 @@
 *.obj
 *.pdb
 *.exe
+*.db
+*.filters
+*.opendb
+*/x64/
+.vs/
+debug/

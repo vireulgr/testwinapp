@@ -10,7 +10,7 @@
 #include <iphlpapi.h>
 
 #include "mynetlib.h"
-#include "mylib.h"
+//#include "mylib.h"
 
 #pragma comment( lib, "Ws2_32.lib" )
 
@@ -43,7 +43,7 @@ int main( int argc, char * argv[] ) {
     //     return 1;
     // }
     struct addrinfo *ptrAInf, *tmp = NULL;
-    ptrAInf = getClientAddrInfo();
+    ptrAInf = getClientAddrInfo( DEFAULT_CON_ADDR );
 
     // walk through getaddrinfo results
     printAddrInfo( ptrAInf );

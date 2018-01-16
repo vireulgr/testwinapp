@@ -10,32 +10,13 @@
 #include <iphlpapi.h>
 
 #include "mynetlib.h"
-#include "mylib.h"
+//#include "mylib.h"
+
+#include <thread>
+#include <chrono>
 
 #pragma comment( lib, "Ws2_32.lib" )
 
-struct addrinfo * getServerAddrInfo( ) {
-
-    struct addrinfo hints, *ptrAInf;
-    ptrAInf = NULL;
-    memset( &hints, 0, sizeof( struct addrinfo ) );
-    int res = 0;
-
-    /// Do we really need getaddrinfo for the server part?????
-    hints.ai_family     = AF_INET;
-    hints.ai_socktype   = SOCK_STREAM;
-    hints.ai_protocol   = IPPROTO_TCP;
-    hints.ai_flags      = AI_PASSIVE;
-
-    res = getaddrinfo( NULL, DEFAULT_PORT, &hints, &ptrAInf ); 
-    if( res != 0 ) {
-        printf( "getaddrinfo failed! res = %d\n", res );       
-        WSACleanup();
-        return NULL;
-    }
-
-    return ptrAInf;
-}
 
 int main( int argc, char * argv[] ) {
 
@@ -49,23 +30,6 @@ int main( int argc, char * argv[] ) {
 /*
     SERVER PART
 */
-    // struct addrinfo hints, *ptrAInf, *tmp;
-    // ptrAInf = NULL;
-    // tmp = NULL;
-    // memset( &hints, 0, sizeof( struct addrinfo ) );
-
-    // /// Do we really need getaddrinfo for the server part?????
-    // hints.ai_family     = AF_INET;
-    // hints.ai_socktype   = SOCK_STREAM;
-    // hints.ai_protocol   = IPPROTO_TCP;
-    // hints.ai_flags      = AI_PASSIVE;
-
-    // res = getaddrinfo( NULL, DEFAULT_PORT, &hints, &ptrAInf ); 
-    // if( res != 0 ) {
-    //     printf( "getaddrinfo failed! res = %d\n", res );       
-    //     WSACleanup();
-    //     return 1;
-    // }
     struct addrinfo * tmp = NULL;
     struct addrinfo * ptrAInf = getServerAddrInfo();
 
@@ -99,59 +63,108 @@ int main( int argc, char * argv[] ) {
         return 1;
     }
 
-    SOCKET clientSocket;
-    clientSocket = INVALID_SOCKET;
+    ///
+    /**
+    */
+    size_t const MAX_CLIENTS = 5;
+    struct fd_set inFd;
+    int maxClId = 0;
+    SOCKET clientSocks[MAX_CLIENTS];
+    for( int i=0; i<MAX_CLIENTS; ++i ) {
+        clientSocks[i] = INVALID_SOCKET;
+    }
+
+    while( 1 ) {
+        FD_ZERO( &inFd );
+        FD_SET( listenSocket, &inFd );
+        for( int i=0; i<MAX_CLIENTS; ++i ) {
+            if( clientSocks[i] == INVALID_SOCKET ) continue;
+            FD_SET( clientSocks[i], &inFd );
+        }
+
+        struct timeval tv = { 0, 5000 };
+        int maxSockFd = 0;
+        res = select( maxSockFd, &inFd, NULL, NULL, &tv );
+        if( res < 0 ) { // error
+            printf( "select failed %d\n", WSAGetLastError() );
+        }
+        else if( res = 0 ) { // timeout
+            std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+            continue;
+        }
+        else { // there are sockets in set
+            if( FD_ISSET( listenSocket, &inFd ) ) {
+                clientSocks[maxClId] = accept( listenSocket, NULL, NULL );
+                if( clientSocks[ maxClId ] == INVALID_SOCKET ) {
+                    printf( "accept failed %d\n", WSAGetLastError() );
+                    break;
+                }
+            }
+            for( int i=0; i<MAX_CLIENTS; ++i ) {
+                if( clientSocks[i] == INVALID_SOCKET ) continue;
+                if( !FD_ISSET( clientSocks[i], &inFd ) ) continue;
+
+                int const theLen = 1024;
+                char theBuffer[theLen] = {0};
+                long long readRet = simpleReceive( clientSocks[i], theBuffer, theLen  );
+                if( readRet == 0 ) {
+                    res = shutdown( clientSocks[i], SD_BOTH );
+                    if( res == SOCKET_ERROR ) {
+                        printf( "shutdown failed! %d\n", WSAGetLastError() );
+                        closesocket( clientSocks[i] );
+                        WSACleanup();
+                        return 1;
+                    }
+                    closesocket( clientSocks[i] );
+                }
+            }
+        }
+    }
+
+    ///
+
+    // SOCKET clientSocket;
+    // clientSocket = INVALID_SOCKET;
  
-    clientSocket = accept( listenSocket, NULL, NULL );
-    if( clientSocket == INVALID_SOCKET ) {
-        printf( "accept failed! %d\n", WSAGetLastError() );
-        closesocket( listenSocket );
-        WSACleanup();
-        return 1;
-    }
+    // clientSocket = accept( listenSocket, NULL, NULL );
+    // if( clientSocket == INVALID_SOCKET ) {
+    //     printf( "accept failed! %d\n", WSAGetLastError() );
+    //     closesocket( listenSocket );
+    //     WSACleanup();
+    //     return 1;
+    // }
 
-    // RECEIVE
-    size_t const bufLen = 2048;
-    size_t offset = 0;
-    char * recvBuf;
-    recvBuf = new char[ bufLen ];
-    do {
-        res = recv( clientSocket, recvBuf + offset, bufLen, 0 );
-        if( res > 0 ) {
-            offset += res;
-            printf( "received % 12d bytes\ntotal    % 12zd bytes", res, offset );
-        }
-        else if( res == 0 ) {
-            puts( "closing connection" );
-        }
-        else if( res < 0 ) {
-            printf( "recv failed! %d\n", WSAGetLastError() );
-            closesocket( clientSocket );
-            return 1;
-        }
-    } while( res > 0 );
+    // // RECEIVE
+    // size_t const bufLen = 2048;
+    // char * recvBuf;
+    // recvBuf = new char[ bufLen ];
+    // res = simpleReceive( clientSocket, recvBuf, bufLen );
+    // if( res != SOCKET_ERROR )  {
+    //     printf( "received: %s\n", recvBuf );
+    // }
+    // else {
+    //     printf( "error receive \n" );
+    // }
+    // delete[] recvBuf;
 
-    recvBuf[offset + 1] = '\0';
-    printf( "received: %s\n", recvBuf );
-    delete[] recvBuf;
+    // // SEND
+    // char *sendBuf = "String from SERVER to send to CLIENT";
 
-    // SEND
-    char *sendBuf = "String from SERVER to send to CLIENT";
+    // // res = send( clientSocket, sendBuf, strlen( sendBuf ), 0 );
+    // res = simpleSend( clientSocket, sendBuf, strlen( sendBuf ) );
+    // if( res == SOCKET_ERROR ) {
+    //     printf( "send failed! %ld", WSAGetLastError() );
+    //     WSACleanup();
+    //     //closesocket( clientSocket ); socket already closed by simpleSend
+    //     return 1;
+    // }
 
-    res = send( clientSocket, sendBuf, strlen( sendBuf ), 0 );
-    if( res == SOCKET_ERROR ) {
-        printf( "send failed! %ld", WSAGetLastError() );
-        WSACleanup();
-        closesocket( clientSocket );
-        return 1;
-    }
+    // printf( "Bytes sent: %d (%zd)\n", res, strlen( sendBuf ) );
 
-    printf( "Bytes sent: %d (%zd)\n", res, strlen( sendBuf ) );
-
-    res = shutdown( clientSocket, SD_SEND );
+    res = shutdown( listenSocket, SD_SEND );
     if( res == SOCKET_ERROR ) {
         printf( "shutdown failed! %d\n", WSAGetLastError() );
-        closesocket( clientSocket );
+        closesocket( listenSocket );
         WSACleanup();
         return 1;
     }
@@ -159,11 +172,7 @@ int main( int argc, char * argv[] ) {
     closesocket( listenSocket );
     WSACleanup();
 
-/*
-    CLIENT PART
-*/
-
     return 0;
 }
 
-// vim: ff=dos
+// vim: ff=dos fileencoding=utf8
