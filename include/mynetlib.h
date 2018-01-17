@@ -102,7 +102,7 @@ struct addrinfo * getClientAddrInfo( char * address ) {
     return ptrAInf;
 }
 
-long long simpleSend( SOCKET sock, char const * sendBuf, int const bufLen ) {
+int simpleSend( SOCKET const sock, char const * sendBuf, int const bufLen, long long & sent ) {
     int offset = 0;
     int res = 0;
     do {
@@ -112,40 +112,45 @@ long long simpleSend( SOCKET sock, char const * sendBuf, int const bufLen ) {
             printf( "sent  % 12d bytes\ntotal % 12d bytes", res, offset );
         }
         else if( res == 0 ) {
-            puts( "closing connection" );
+            puts( "Can't send" );
+            sent = offset;
+            return 0;
         }
         else if( res == SOCKET_ERROR ) {
-            printf( "send failed! %d\n", WSAGetLastError() );
-            closesocket( sock );
-            return res;
+            int err = WSAGetLastError();
+            printf( "send failed! %d\n", err );
+            //closesocket( sock );
+            sent = offset;
+            return err;
         }
     } while( res > 0 );
+
+    sent = offset;
     return offset;
 }
 
-long long simpleReceive( SOCKET sock, char * recvBuf, int const bufLen ) {
+int simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen, long long & received ) {
     int res = 0;
     int offset = 0;
     do {
-        res = recv( sock, recvBuf + offset, bufLen, 0 );
-        if( res > 0 ) {
-            offset += res;
-            printf( "received % 12d bytes\ntotal    % 12d bytes", res, offset );
-        }
-        else if( res == 0 ) {
-            puts( "closing connection" );
-        }
-        else if( res == SOCKET_ERROR ) {
-            printf( "recv failed! %d\n", WSAGetLastError() );
-            closesocket( sock );
-            return res;
-        }
-    } while( res > 0 );
+        offset += res;
+        //printf( "received % 12d bytes\n   total % 12d bytes\n", res, offset );
+        res = recv( sock, recvBuf + offset, bufLen - offset, 0 );
+    } while( res > 0 && bufLen > offset );
+
+   if( res == 0 ) {
+       printf( "Sucssessfully received % 12d bytes\n   total % 12d bytes\n", res, offset );
+   }
+   else if( res == SOCKET_ERROR ) {
+       int err = WSAGetLastError();
+       printf( "recv failed! %d\n", err );
+   }
 
     recvBuf[offset + 1] = '\0';
-    return offset;
+    received = offset;
+    return res;
 }
 
 
 #endif
-// vim: ff=dos fileencoding=utf8
+// vim: ff=dos fileencoding=utf8 expandtab
