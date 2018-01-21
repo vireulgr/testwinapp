@@ -90,7 +90,7 @@ int main( int argc, char * argv[] ) {
     // SEND
     char *sendBuf = "String from client to send to server";
 
-    res = send( connSocket, sendBuf, strlen( sendBuf ), 0 );
+    res = send( connSocket, sendBuf, (int)strlen( sendBuf ), 0 );
     if( res == SOCKET_ERROR ) {
         printf( "send failed! %ld", WSAGetLastError() );
         WSACleanup();
@@ -110,15 +110,15 @@ int main( int argc, char * argv[] ) {
     // END SEND
 
     // RECEIVE
-    size_t const bufLen = 2048;
+    int const bufLen = 2048;
     char * recvBuf;
-    size_t offset = 0;
+    int offset = 0;
     recvBuf = new char[ bufLen ];
     do {
         res = recv( connSocket, recvBuf + offset, bufLen - offset, 0 );
         if( res > 0 ) {
             offset += res;
-            printf( "received % 12d bytes\ntotal    % 12zd bytes", res, offset );
+            printf( "received % 12d bytes\ntotal    % 12d bytes", res, offset );
         }
         else if( res == 0 ) {
             puts( "closing connection" );
