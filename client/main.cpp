@@ -10,10 +10,12 @@
 #include <iphlpapi.h>
 
 #include "mynetlib.h"
+#include <thread>
+#include <chrono>
 //#include "mylib.h"
+// script for PowerShell for( $i=0; $i -le 5; ++$i ) { Start-Process D:\prog\src\cpp\winsock\x64\debug\client.exe }
 
 #pragma comment( lib, "Ws2_32.lib" )
-
 
 int main( int argc, char * argv[] ) {
 
@@ -24,24 +26,7 @@ int main( int argc, char * argv[] ) {
         printf( "WSAStartup failed! res = %d\n", res );
         return 1;
     }
-/*
-    CLIENT PART
-*/
-    // struct addrinfo hints, *ptrAInf, *tmp;
-    // ptrAInf = NULL;
-    // tmp = NULL;
-    // memset( &hints, 0, sizeof( struct addrinfo ) );
 
-    // hints.ai_family     = AF_UNSPEC;
-    // hints.ai_socktype   = SOCK_STREAM;
-    // hints.ai_protocol   = IPPROTO_TCP;
-
-    // res = getaddrinfo( DEFAULT_CON_ADDR, DEFAULT_PORT, &hints, &ptrAInf ); 
-    // if( res != 0 ) {
-    //     printf( "getaddrinfo failed! res = %d\n", res );       
-    //     WSACleanup();
-    //     return 1;
-    // }
     struct addrinfo *ptrAInf, *tmp = NULL;
     ptrAInf = getClientAddrInfo( DEFAULT_CON_ADDR );
 
@@ -86,17 +71,36 @@ int main( int argc, char * argv[] ) {
         return 1;
     }
 
+    DWORD myPid = GetCurrentProcessId();
+    printf( "PID>>  %zld  <<\n", myPid );
 
     // SEND
-    char *sendBuf = "String from client to send to server";
+    char *sendFormat = "PID>>  %zd  <<\tBegin\n"
+        "1The very long String from client to send to server\nIts lengh is way"
+        "longer than typical buffer length (I hope). Yo! Repeat!\n"
+        "2The very long String from client to send to server\nIts lengh is way"
+        "longer than typical buffer length (I hope). Yo! Repeat!\n"
+        "3The very long String from client to send to server\nIts lengh is way"
+        "longer than typical buffer length (I hope). Yo! Repeat!\n"
+        "4The very long String from client to send to server\nIts lengh is way"
+        "longer than typical buffer length (I hope). Yo! Repeat!\n"
+        "End\n"
+        ;
+    char *sendBuf = new char[1024];
+    memset( sendBuf, 0, 1024 );
+    snprintf( sendBuf, 1024 * sizeof( char ), sendFormat, myPid );
 
-    res = send( connSocket, sendBuf, (int)strlen( sendBuf ), 0 );
-    if( res == SOCKET_ERROR ) {
-        printf( "send failed! %ld", WSAGetLastError() );
-        WSACleanup();
-        closesocket( connSocket );
-        return 1;
+    for( int cn=0; cn<4; ++cn ) {
+        res = send( connSocket, sendBuf, (int)strlen( sendBuf ), 0 );
+        if( res == SOCKET_ERROR ) {
+            printf( "send failed! %ld", WSAGetLastError() );
+            WSACleanup();
+            closesocket( connSocket );
+            return 1;
+        }
+        std::this_thread::sleep_for( std::chrono::milliseconds(100) );
     }
+
 
     printf( "Bytes sent: %d (%zd)\n", res, strlen( sendBuf ) );
 
@@ -143,4 +147,4 @@ int main( int argc, char * argv[] ) {
     return 0;
 }
 
-// vim: ff=dos
+// vim: ff=dos fileencoding=utf8 expandtab
