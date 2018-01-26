@@ -87,7 +87,7 @@ struct addrinfo * getClientAddrInfo( char * address ) {
     memset( &hints, 0, sizeof( struct addrinfo ) );
     int res = 0;
 
-    /// Do we really need getaddrinfo for the server part?????
+    // Do we really need getaddrinfo for the server part?????
     hints.ai_family     = AF_INET;
     hints.ai_socktype   = SOCK_STREAM;
     hints.ai_protocol   = IPPROTO_TCP;

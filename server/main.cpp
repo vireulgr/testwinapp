@@ -66,7 +66,7 @@ int main( int argc, char * argv[] ) {
     ///
     /**
     */
-    int maxSockFd = 0;
+    unsigned int maxSockFd = 0;
     size_t const MAX_CLIENTS = 5;
     struct fd_set inFd;
     int numClients = 0;
