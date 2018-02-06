@@ -92,9 +92,9 @@ struct addrinfo * getClientAddrInfo( char * address ) {
     hints.ai_socktype   = SOCK_STREAM;
     hints.ai_protocol   = IPPROTO_TCP;
 
-    res = getaddrinfo( address, DEFAULT_PORT, &hints, &ptrAInf ); 
+    res = getaddrinfo( address, DEFAULT_PORT, &hints, &ptrAInf );
     if( res != 0 ) {
-        printf( "getaddrinfo failed! res = %d\n", res );       
+        printf( "getaddrinfo failed! res = %d\n", res );
         WSACleanup();
         return NULL;
     }
