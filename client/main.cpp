@@ -34,7 +34,11 @@ int main( int argc, char * argv[] ) {
     printAddrInfo( ptrAInf );
 
     tmp = ptrAInf;
-    if( tmp != nullptr && tmp->ai_family != AF_INET ) { tmp = tmp->ai_next; }
+	while( tmp != nullptr ) {
+		if( tmp->ai_family == AF_INET )
+			break;
+		tmp = tmp->ai_next;
+	}
     if( tmp == nullptr ) {
         puts( "no ipv4 addrinfo" );
         freeaddrinfo( ptrAInf );
@@ -60,6 +64,10 @@ int main( int argc, char * argv[] ) {
     if( res == SOCKET_ERROR ) {
         printf( "connect failed! %ld", WSAGetLastError() );
         closesocket( connSocket );
+		freeaddrinfo( ptrAInf );
+		WSACleanup();
+		std::this_thread::sleep_for( std::chrono::seconds(2) );
+		return -1;
     }
 
     freeaddrinfo( ptrAInf );
@@ -72,7 +80,7 @@ int main( int argc, char * argv[] ) {
     }
 
     DWORD myPid = GetCurrentProcessId();
-    printf( "PID>>  %zld  <<\n", myPid );
+    printf( "PID>>  %d  <<\n", myPid );
 
     // SEND
     char *sendFormat = "PID>>  %zd  <<\tBegin\n"
