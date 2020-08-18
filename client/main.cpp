@@ -10,14 +10,16 @@
 #include <iphlpapi.h>
 
 #include "mynetlib.h"
-#include <thread>
-#include <chrono>
+//#include <thread>
+//#include <chrono>
+//#include "../SockLib/TCPConnector.h"
+
 //#include "mylib.h"
 // script for PowerShell for( $i=0; $i -le 5; ++$i ) { Start-Process D:\prog\src\cpp\winsock\x64\debug\client.exe }
 
 #pragma comment( lib, "Ws2_32.lib" )
 
-int main( int argc, char * argv[] ) {
+int main() {
 
     WSADATA wsadata;
     int res;
@@ -26,6 +28,8 @@ int main( int argc, char * argv[] ) {
         printf( "WSAStartup failed! res = %d\n", res );
         return 1;
     }
+    //TCPConnector tcpConn;
+    //tcpConn.connect(DEFAULT_PORT_INT, DEFAULT_CON_ADDR);
 
     struct addrinfo *ptrAInf, *tmp = NULL;
     ptrAInf = getClientAddrInfo( DEFAULT_CON_ADDR );
@@ -34,22 +38,23 @@ int main( int argc, char * argv[] ) {
     printAddrInfo( ptrAInf );
 
     tmp = ptrAInf;
-	while( tmp != nullptr ) {
-		if( tmp->ai_family == AF_INET )
-			break;
-		tmp = tmp->ai_next;
-	}
-    if( tmp == nullptr ) {
+    while( tmp != nullptr ) {
+        if( tmp->ai_family == AF_INET )
+            break;
+        tmp = tmp->ai_next;
+    }
+
+    if (tmp == nullptr) {
         puts( "no ipv4 addrinfo" );
         freeaddrinfo( ptrAInf );
         WSACleanup();
         return 1;
     }
 
-    char strBuf[1024] = {0};
-    InetNtop( tmp->ai_family, &(((sockaddr_in*)tmp->ai_addr)->sin_addr), strBuf, 1024 );
+    wchar_t strBuf[1024] = {0};
+    InetNtopW( tmp->ai_family, &(((sockaddr_in*)tmp->ai_addr)->sin_addr), strBuf, 1024 );
 
-    printf( "address: %s\n", strBuf );
+    wprintf( L"address: %s\n", strBuf );
 
     SOCKET connSocket = INVALID_SOCKET;
     connSocket = socket( tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol );
@@ -64,10 +69,11 @@ int main( int argc, char * argv[] ) {
     if( res == SOCKET_ERROR ) {
         printf( "connect failed! %ld", WSAGetLastError() );
         closesocket( connSocket );
-		freeaddrinfo( ptrAInf );
-		WSACleanup();
-		std::this_thread::sleep_for( std::chrono::seconds(2) );
-		return -1;
+        freeaddrinfo( ptrAInf );
+        WSACleanup();
+        //std::this_thread::sleep_for( std::chrono::seconds(2) );
+        Sleep(2000);
+        return -1;
     }
 
     freeaddrinfo( ptrAInf );
@@ -106,7 +112,8 @@ int main( int argc, char * argv[] ) {
             closesocket( connSocket );
             return 1;
         }
-        std::this_thread::sleep_for( std::chrono::milliseconds(100) );
+        //std::this_thread::sleep_for( std::chrono::milliseconds(100) );
+        Sleep(100);
     }
 
 
@@ -155,4 +162,4 @@ int main( int argc, char * argv[] ) {
     return 0;
 }
 
-// vim: ff=dos fileencoding=utf8 expandtab
+/* vim: set ff=dos fileencoding=utf8 expandtab : */

@@ -1,16 +1,61 @@
-#ifndef _MYNETLIB_H_
-#define _MYNETLIB_H_
-#include <stdlib.h>
+﻿#include "pch.h"
+#include "framework.h"
+
+//#include <stdlib.h>
+#include <stdio.h>
 #include <ws2tcpip.h>
-#include <winsock2.h>
 
-#define DEFAULT_PORT_INT 27015
-#define DEFAULT_PORT_STR "27015"
-#define DEFAULT_CON_ADDR "127.0.0.1"
-//#define DEFAULT_CON_ADDR "192.168.13.207"
+#include "MyNetLib.h"
+
+#pragma comment( lib, "Ws2_32.lib" )
+
+char const * MyNetLib::wsaErrorToString(int err) {
+	char const* a = nullptr;
+	switch (err) {
+	case WSASYSNOTREADY: a = "The underlying network subsystem is not ready for network communication."; break;
+	case WSAVERNOTSUPPORTED: a = "The version of Windows Sockets support requested is not provided by this particular Windows Sockets implementation."; break;
+	case WSAEINPROGRESS: a = "A blocking Windows Sockets 1.1 operation is in progress."; break;
+	case WSAEPROCLIM: a = "A limit on the number of tasks supported by the Windows Sockets implementation has been reached."; break;
+	case WSAEFAULT: a = "The lpWSAData parameter is not a valid pointer."; break;
+	default: a = "Unknown"; break;
+	}
+	return a;
+}
 
 
-char const * getFamilyByCode( int code ) {
+MyNetLib::Autocleanup::Autocleanup() : m_isInited(false), m_wsaData() {}
+
+MyNetLib::Autocleanup::~Autocleanup() {
+    if (m_isInited) {
+        WSACleanup();
+    }
+}
+int MyNetLib::Autocleanup::init() {
+    return WSAStartup(MAKEWORD(2, 2), &m_wsaData);
+}
+
+void MyNetLib::Autocleanup::reset() {
+    m_isInited = false;
+}
+
+
+//WSADATA g_wsaData;
+
+//int MyNetLib::init() {
+//    //WSADATA wsadata;
+//    int res = WSAStartup(MAKEWORD(2, 2), &g_wsaData);
+//    if (res != 0) {
+//        printf("WSAStartup failed! res = %d\n", res);
+//        return res;
+//    }
+//}
+//
+//void MyNetLib::deinit() {
+//    WSACleanup();
+//}
+
+
+char const * MyNetLib::getFamilyByCode( int code ) {
     switch( code ) {
         case 0: return "AF_UNSPEC";
         case 2: return "AF_INET";
@@ -18,7 +63,7 @@ char const * getFamilyByCode( int code ) {
         default: return "ERROR";
     }
 }
-char const * getSockTypeByCode( int code ) {
+char const * MyNetLib::getSockTypeByCode( int code ) {
     switch( code ) {
         case 1:  return "SOCK_STREAM";
         case 2:  return "SOCK_DGRAM";
@@ -28,7 +73,7 @@ char const * getSockTypeByCode( int code ) {
     }
 }
 
-char const * getProtocolByCode( int code ) {
+char const * MyNetLib::getProtocolByCode( int code ) {
     switch( code ) {
         case 6:   return "IPPROTO_TCP";
         case 17:  return "IPPROTO_UDP";
@@ -36,7 +81,8 @@ char const * getProtocolByCode( int code ) {
         default:  return "ERROR";
     }
 }
-void printAddrInfo( struct addrinfo * ptrAInf ) {
+
+void MyNetLib::printAddrInfo( struct addrinfo * ptrAInf ) {
     
     for( struct addrinfo * tmp = ptrAInf; tmp != NULL; tmp = tmp->ai_next ) {
 
@@ -58,7 +104,7 @@ void printAddrInfo( struct addrinfo * ptrAInf ) {
     }
 }
 
-struct addrinfo * getServerAddrInfo( ) {
+struct addrinfo * MyNetLib::getServerAddrInfo( ) {
 
     struct addrinfo hints, *ptrAInf;
     ptrAInf = NULL;
@@ -81,7 +127,7 @@ struct addrinfo * getServerAddrInfo( ) {
     return ptrAInf;
 }
 
-struct addrinfo * getClientAddrInfo( char * address ) {
+struct addrinfo * MyNetLib::getClientAddrInfo( char * address ) {
 
     struct addrinfo hints, *ptrAInf;
     ptrAInf = NULL;
@@ -103,7 +149,7 @@ struct addrinfo * getClientAddrInfo( char * address ) {
     return ptrAInf;
 }
 
-int simpleSend( SOCKET const sock, char const * sendBuf, int const bufLen, long long & sent ) {
+int MyNetLib::simpleSend( SOCKET const sock, char const * sendBuf, int const bufLen, long long & sent ) {
     int offset = 0;
     int res = 0;
     do {
@@ -130,7 +176,7 @@ int simpleSend( SOCKET const sock, char const * sendBuf, int const bufLen, long 
     return offset;
 }
 
-int simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen, long long & received ) {
+int MyNetLib::simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen, long long & received ) {
     int res = 0;
     int offset = 0;
     do {
@@ -153,5 +199,4 @@ int simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen, long lon
 }
 
 
-#endif
 // vim: ff=dos fileencoding=utf8 expandtab
