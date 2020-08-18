@@ -5,6 +5,7 @@
 void matrixSquare( float * mat, size_t size, float ** res );
 void TEST_matrixSquare( );
 
+//##################################################
 template< typename T >
 void bubbleSort( T * arr, size_t size ) {
 //void bubbleSort( float * arr, size_t size ) {
@@ -21,6 +22,7 @@ void bubbleSort( T * arr, size_t size ) {
 }
 void TEST_bubbleSort( );
 
+//##################################################
 template< typename T >
 void alternatingHarmonicSeries( int num, T & res ) {
     bool neg = false;
@@ -32,6 +34,7 @@ void alternatingHarmonicSeries( int num, T & res ) {
 
 void TEST_alternatingHarmoincSeries( );
 
+//##################################################
 template< typename T >
 void logMcLoren( T arg, size_t prec, T & res ) {
     T member;
@@ -49,6 +52,7 @@ void logMcLoren( T arg, size_t prec, T & res ) {
 
 void TEST_logMcLoren( ); 
 
+//##################################################
 template< typename T >
 void logOverArray( T * arr, size_t size ) {
     for( int i=0; i<size; ++i ) {
