@@ -12,8 +12,8 @@
 #include "..\MyNetLib\MyNetLib.h"
 //#include "mylib.h"
 
-#include <thread>
-#include <chrono>
+//#include <thread>
+//#include <chrono>
 
 #pragma comment( lib, "Ws2_32.lib" )
 
@@ -54,6 +54,7 @@ public:
                 return &m_emergency;
             }
         }
+        friend class ClientsSocksArray;
     };
 
     size_t const MAX_CLIENTS = 5;
@@ -95,17 +96,25 @@ public:
         return m_clientSocks[idx];
     }
 
-    void removeClient( ClientsSocksArray::iterator it ) {
+    ClientsSocksArray::iterator removeClient( ClientsSocksArray::iterator it ) {
         if( it == this->end() ) {
             return;
         }
         --m_numClients;
-        __int64 temp = *it;
+
+        ClientsSocksArray::iterator tmp(it);
+        tmp.prev();
+        // swap client sockets
+        SOCKET temp = *it;
         *it = m_clientSocks[m_numClients];
-        m_clientSocks[m_numClients] = INVALID_SOCKET;
+        m_clientSocks[m_numClients] = INVALID_SOCKET; // free client that has been removed
+
         if (temp == m_maxFD) {
             m_maxFD = countMaxFD();
         }
+
+        tmp.next();
+        return tmp;
     }
 
     void removeClient( int idx ) {
