@@ -39,22 +39,6 @@ void MyNetLib::Autocleanup::reset() {
 }
 
 
-//WSADATA g_wsaData;
-
-//int MyNetLib::init() {
-//    //WSADATA wsadata;
-//    int res = WSAStartup(MAKEWORD(2, 2), &g_wsaData);
-//    if (res != 0) {
-//        printf("WSAStartup failed! res = %d\n", res);
-//        return res;
-//    }
-//}
-//
-//void MyNetLib::deinit() {
-//    WSACleanup();
-//}
-
-
 char const * MyNetLib::getFamilyByCode( int code ) {
     switch( code ) {
         case 0: return "AF_UNSPEC";
@@ -100,7 +84,6 @@ void MyNetLib::printAddrInfo( struct addrinfo * ptrAInf ) {
 
         printf( " canonname: %s\n",         tmp->ai_canonname );
         printf( " inet addr: 0x%x\n", ((sockaddr_in*)tmp->ai_addr)->sin_addr.s_addr );
-
     }
 }
 
@@ -134,7 +117,6 @@ struct addrinfo * MyNetLib::getClientAddrInfo( char * address ) {
     memset( &hints, 0, sizeof( struct addrinfo ) );
     int res = 0;
 
-    // Do we really need getaddrinfo for the server part?????
     hints.ai_family     = AF_INET;
     hints.ai_socktype   = SOCK_STREAM;
     hints.ai_protocol   = IPPROTO_TCP;
@@ -186,7 +168,7 @@ int MyNetLib::simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen
     } while( res > 0 && bufLen > offset );
 
    if( res == 0 ) {
-       printf( "Sucssessfully received % 12d bytes\n   total % 12d bytes\n", res, offset );
+       printf("Total received % 12d bytes\n", offset);
    }
    else if( res == SOCKET_ERROR ) {
        int err = WSAGetLastError();
