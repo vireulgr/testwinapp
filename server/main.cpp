@@ -144,36 +144,18 @@ void addClientsToFDSet( fd_set * set, ClientsSocksArray & clients ) {
     }
 }
 
-#define INIT_WSA2( res ) do {							\
-    WSADATA wsadata;									\
-    res = WSAStartup( MAKEWORD( 2, 2 ), &wsadata );		\
-    if( res != 0 ) {									\
-        printf( "WSAStartup failed! res = %d\n", res );	\
-        return 1;										\
-    } } while( false )									\
 
 int main() {
 
-    //int res;
-    //INIT_WSA2( res );
     MyNetLib::Autocleanup a;
     int res = a.init();
     if( res != 0 ) {
         printf( "WSAStartup failed! res = %d\n", res );
         return 1;
     }
-    //WSADATA wsadata;
-    //int res;
-    //res = WSAStartup( MAKEWORD( 2, 2 ), &wsadata );
-    //if( res != 0 ) {
-    //    printf( "WSAStartup failed! res = %d\n", res );
-    //    return 1;
-    //}
-/*
-    SERVER PART
-*/
+
     struct addrinfo * tmp = NULL;
-    struct addrinfo * ptrAInf = MyNetLib::getServerAddrInfo();
+    struct addrinfo * ptrAInf = MyNetLib::getTcpServerAddrInfo();
 
     // walk through getaddrinfo results
     MyNetLib::printAddrInfo( ptrAInf );

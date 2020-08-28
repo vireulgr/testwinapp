@@ -150,7 +150,7 @@ int main() {
         }
     } while( res > 0 );
 
-    recvBuf[offset + 1] = '\0';
+    recvBuf[offset] = '\0';
     printf( "received: %s\n", recvBuf );
     delete[] recvBuf;
 
