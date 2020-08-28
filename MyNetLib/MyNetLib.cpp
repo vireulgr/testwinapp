@@ -87,7 +87,7 @@ void MyNetLib::printAddrInfo( struct addrinfo * ptrAInf ) {
     }
 }
 
-struct addrinfo * MyNetLib::getServerAddrInfo( ) {
+struct addrinfo * MyNetLib::getTcpServerAddrInfo( ) {
 
     struct addrinfo hints, *ptrAInf;
     ptrAInf = NULL;
@@ -103,14 +103,14 @@ struct addrinfo * MyNetLib::getServerAddrInfo( ) {
     res = getaddrinfo( NULL, DEFAULT_PORT_STR, &hints, &ptrAInf );
     if( res != 0 ) {
         printf( "getaddrinfo failed! res = %d\n", res );
-        WSACleanup();
+        //WSACleanup(); // see Autocleanup
         return NULL;
     }
 
     return ptrAInf;
 }
 
-struct addrinfo * MyNetLib::getClientAddrInfo( char * address ) {
+struct addrinfo * MyNetLib::getTcpClientAddrInfo(char const * address) {
 
     struct addrinfo hints, *ptrAInf;
     ptrAInf = NULL;
@@ -124,14 +124,59 @@ struct addrinfo * MyNetLib::getClientAddrInfo( char * address ) {
     res = getaddrinfo( address, DEFAULT_PORT_STR, &hints, &ptrAInf );
     if( res != 0 ) {
         printf( "getaddrinfo failed! res = %d\n", res );
-        WSACleanup();
+        //WSACleanup(); // see Autocleanup
         return NULL;
     }
 
     return ptrAInf;
 }
 
-int MyNetLib::simpleSend( SOCKET const sock, char const * sendBuf, int const bufLen, long long & sent ) {
+struct addrinfo * MyNetLib::getUdpServerAddrInfo( ) {
+
+    struct addrinfo hints, *ptrAInf;
+    ptrAInf = NULL;
+    memset( &hints, 0, sizeof( struct addrinfo ) );
+    int res = 0;
+
+    /// Do we really need getaddrinfo for the server part?????
+    hints.ai_family     = AF_INET; // TODO make this IPv4/IPv6 independent
+    hints.ai_socktype   = SOCK_DGRAM;
+    hints.ai_protocol   = IPPROTO_UDP;
+    hints.ai_flags      = AI_PASSIVE;
+
+    res = getaddrinfo(NULL, DEFAULT_PORT_STR, &hints, &ptrAInf);
+    if(res != 0) {
+        printf("getaddrinfo failed! res = %d\n", res);
+        //WSACleanup(); // see Autocleanup
+        return NULL;
+    }
+
+    return ptrAInf;
+}
+
+struct addrinfo * MyNetLib::getUdpClientAddrInfo(char const * address) {
+
+    struct addrinfo hints, *ptrAInf;
+    ptrAInf = NULL;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    int res = 0;
+
+    // Do we really need getaddrinfo for the server part?????
+    hints.ai_family     = AF_INET;
+    hints.ai_socktype   = SOCK_DGRAM;
+    hints.ai_protocol   = IPPROTO_UDP;
+
+    res = getaddrinfo(address, DEFAULT_PORT_STR, &hints, &ptrAInf);
+    if(res != 0) {
+        printf("getaddrinfo failed! res = %d\n", res);
+        //WSACleanup(); // see Autocleanup
+        return NULL;
+    }
+
+    return ptrAInf;
+}
+
+long long MyNetLib::simpleTcpSend(SOCKET const sock, char const * sendBuf, long long const bufLen, long long & sent) {
     int offset = 0;
     int res = 0;
     do {
@@ -158,9 +203,9 @@ int MyNetLib::simpleSend( SOCKET const sock, char const * sendBuf, int const buf
     return offset;
 }
 
-int MyNetLib::simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen, long long & received ) {
-    int res = 0;
-    int offset = 0;
+long long MyNetLib::simpleTcpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, long long & received) {
+    long long res = 0;
+    long long offset = 0;
     do {
         offset += res;
         //printf( "received % 12d bytes\n   total % 12d bytes\n", res, offset );
@@ -168,7 +213,7 @@ int MyNetLib::simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen
     } while( res > 0 && bufLen > offset );
 
    if( res == 0 ) {
-       printf("Total received % 12d bytes\n", offset);
+       printf("Total received % 12lld bytes\n", offset);
    }
    else if( res == SOCKET_ERROR ) {
        int err = WSAGetLastError();
@@ -180,5 +225,29 @@ int MyNetLib::simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen
     return res;
 }
 
+long long MyNetLib::simpleUdpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, struct sockaddr_in ** from) {
+    long long res = 0;
+
+    //printf( "received % 12d bytes\n   total % 12d bytes\n", res, offset );
+    struct sockaddr* fromStruct = nullptr;
+    int fromStructLen = 0;
+    res = recvfrom(sock, recvBuf, bufLen, 0, fromStruct, &fromStructLen);
+
+    if (fromStructLen == sizeof(struct sockaddr_in) && from != nullptr) {
+        *from = (struct sockaddr_in*)fromStruct;
+    }
+
+    if (res == 0) {
+        printf("Total received % 12lld bytes\n", res);
+    }
+    else if (res == SOCKET_ERROR) {
+        int err = WSAGetLastError();
+        printf("recvfrom failed! %d\n", err);
+    }
+
+    recvBuf[res + 1] = '\0';
+
+    return res;
+}
 
 // vim: ff=dos fileencoding=utf8 expandtab

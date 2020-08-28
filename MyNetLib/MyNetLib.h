@@ -27,8 +27,15 @@ namespace MyNetLib {
 	char const * getSockTypeByCode( int code );
 	char const * getProtocolByCode( int code );
 	void printAddrInfo( struct addrinfo * ptrAInf );
-	struct addrinfo * getServerAddrInfo( );
-	struct addrinfo * getClientAddrInfo( char * address );
-	int simpleSend( SOCKET const sock, char const * sendBuf, int const bufLen, long long & sent );
-	int simpleReceive( SOCKET const sock, char * recvBuf, int const bufLen, long long & received );
+
+	struct addrinfo * getTcpServerAddrInfo();
+	struct addrinfo * getTcpClientAddrInfo(char const * address);
+
+	struct addrinfo * getUdpServerAddrInfo();
+	struct addrinfo * getUdpClientAddrInfo(char const * address);
+
+	long long simpleTcpSend(SOCKET const sock, char const * sendBuf, long long const bufLen, long long & sent);
+	long long simpleTcpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, long long & received);
+
+	long long simpleUdpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, struct sockaddr_in ** from);
 }
