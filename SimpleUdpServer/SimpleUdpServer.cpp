@@ -1,15 +1,37 @@
 ﻿#include "../MyNetLib/MyNetLib.h"
+#ifdef _WIN32
 #include <WinSock2.h>
-#include <cstdio>
 #include <WS2tcpip.h>
+#endif
+#include <cstdio>
 #include <memory>
+#include <mutex>
 
 namespace NL = MyNetLib;
 
-unsigned short const g_port = 514;
+//unsigned short const g_port = 27182;
+
+std::mutex g_mtx;
+bool g_doWork = true;
+
+BOOL WINAPI consoleHandler(DWORD signal) {
+    if (signal == CTRL_C_EVENT) {
+        g_mtx.lock();
+        g_doWork = false;
+        g_mtx.unlock();
+    }
+    return TRUE;
+}
 
 int main()
 {
+#ifdef _WIN32
+    if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
+        ::printf("Error! cannot set console handler");
+        return 1;
+    };
+#endif
+
     NL::Autocleanup a;
     int ret = a.init();
     if (ret == 0) {
@@ -55,6 +77,15 @@ int main()
         ::InetNtopW(AF_INET, &(from->sin_addr), inetAddrBuf, 128);
         ::wprintf(L"received from %s\n", inetAddrBuf);
         ::printf("%s\n", recvBuf.get());
+
+        g_mtx.lock();
+        bool doWorkValue = g_doWork;
+        g_mtx.unlock();
+
+        if (!doWorkValue) break;
+#ifdef _WIN32
+        Sleep(500);
+#endif
     }
 
     ::closesocket(listenSock);
