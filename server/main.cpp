@@ -98,7 +98,7 @@ public:
 
     ClientsSocksArray::iterator removeClient( ClientsSocksArray::iterator it ) {
         if( it == this->end() ) {
-            return;
+            return it;
         }
         --m_numClients;
 
@@ -244,7 +244,7 @@ int main() {
                 char theBuffer[theLen] = {0};
                 long long readRet = 0;
 
-                int recRes = MyNetLib::simpleReceive( *it, theBuffer, theLen, readRet );
+                int recRes = MyNetLib::simpleTcpReceive(*it, theBuffer, theLen, readRet);
 
                 res = shutdown( *it, SD_BOTH );
                 if( res == SOCKET_ERROR ) {

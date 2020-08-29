@@ -26,12 +26,13 @@ char const * MyNetLib::wsaErrorToString(int err) {
 MyNetLib::Autocleanup::Autocleanup() : m_isInited(false), m_wsaData() {}
 
 MyNetLib::Autocleanup::~Autocleanup() {
+
     if (m_isInited) {
-        WSACleanup();
+        ::WSACleanup();
     }
 }
 int MyNetLib::Autocleanup::init() {
-    return WSAStartup(MAKEWORD(2, 2), &m_wsaData);
+    return ::WSAStartup(MAKEWORD(2, 2), &m_wsaData);
 }
 
 void MyNetLib::Autocleanup::reset() {
@@ -68,22 +69,22 @@ char const * MyNetLib::getProtocolByCode( int code ) {
 
 void MyNetLib::printAddrInfo( struct addrinfo * ptrAInf ) {
     
-    for( struct addrinfo * tmp = ptrAInf; tmp != NULL; tmp = tmp->ai_next ) {
+    for(struct addrinfo * tmp = ptrAInf; tmp != NULL; tmp = tmp->ai_next) {
 
-        char const * str = getFamilyByCode( tmp->ai_family );
-        printf( "    family: %s (%d)\n",    str, tmp->ai_family );
+        char const * str = getFamilyByCode(tmp->ai_family);
+        printf("   family: %s (%d)\n", str, tmp->ai_family);
 
         str = getSockTypeByCode( tmp->ai_socktype );
-        printf( "  socktype: %s (%d)\n",    str, tmp->ai_socktype );
+        printf(" socktype: %s (%d)\n", str, tmp->ai_socktype);
 
-        str = getProtocolByCode( tmp->ai_protocol );
-        printf( "  protocol: %s (%d)\n",    str , tmp->ai_protocol);
+        str = getProtocolByCode(tmp->ai_protocol);
+        printf(" protocol: %s (%d)\n", str, tmp->ai_protocol);
 
-        unsigned short myPort = ntohs( ((sockaddr_in*)tmp->ai_addr)->sin_port );
-        printf( "inet port2: %d\n",   myPort );
+        unsigned short port = ntohs(((sockaddr_in*)tmp->ai_addr)->sin_port);
+        printf("inet port: %d\n", port );
 
-        printf( " canonname: %s\n",         tmp->ai_canonname );
-        printf( " inet addr: 0x%x\n", ((sockaddr_in*)tmp->ai_addr)->sin_addr.s_addr );
+        printf("canonname: %s\n", tmp->ai_canonname);
+        printf("inet addr: 0x%x\n", ((sockaddr_in*)tmp->ai_addr)->sin_addr.s_addr);
     }
 }
 
@@ -225,24 +226,26 @@ long long MyNetLib::simpleTcpReceive(SOCKET const sock, char * recvBuf, long lon
     return res;
 }
 
-long long MyNetLib::simpleUdpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, struct sockaddr_in ** from) {
+long long MyNetLib::simpleUdpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, struct sockaddr_in & from) {
     long long res = 0;
 
     //printf( "received % 12d bytes\n   total % 12d bytes\n", res, offset );
-    struct sockaddr* fromStruct = nullptr;
-    int fromStructLen = 0;
-    res = recvfrom(sock, recvBuf, bufLen, 0, fromStruct, &fromStructLen);
-
-    if (fromStructLen == sizeof(struct sockaddr_in) && from != nullptr) {
-        *from = (struct sockaddr_in*)fromStruct;
-    }
+    struct sockaddr_in fromStruct;
+    int fromStructLen = sizeof(struct sockaddr_in);
+    ::memset(&fromStruct, 0, fromStructLen);
+    res = ::recvfrom(sock, recvBuf, bufLen, 0, (struct sockaddr*)&fromStruct, &fromStructLen);
 
     if (res == 0) {
-        printf("Total received % 12lld bytes\n", res);
+        return res;
     }
     else if (res == SOCKET_ERROR) {
-        int err = WSAGetLastError();
-        printf("recvfrom failed! %d\n", err);
+        int err = ::WSAGetLastError();
+        ::printf("recvfrom failed! %d\n", err);
+        return -1;
+    }
+
+    if (fromStructLen == sizeof(struct sockaddr_in)) {
+        from = *((struct sockaddr_in*)&fromStruct);
     }
 
     recvBuf[res + 1] = '\0';

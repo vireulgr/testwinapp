@@ -37,5 +37,5 @@ namespace MyNetLib {
 	long long simpleTcpSend(SOCKET const sock, char const * sendBuf, long long const bufLen, long long & sent);
 	long long simpleTcpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, long long & received);
 
-	long long simpleUdpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, struct sockaddr_in ** from);
+	long long simpleUdpReceive(SOCKET const sock, char * recvBuf, long long const bufLen, struct sockaddr_in & from);
 }

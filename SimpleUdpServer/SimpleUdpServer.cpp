@@ -26,28 +26,32 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 int main()
 {
 #ifdef _WIN32
-    if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
-        ::printf("Error! cannot set console handler");
-        return 1;
-    };
+    //if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
+    //    ::printf("Error! cannot set console handler");
+    //    return 1;
+    //};
 #endif
 
     NL::Autocleanup a;
     int ret = a.init();
-    if (ret == 0) {
+    if (ret != 0) {
         ::printf("error in WSAStartup, %d", ::WSAGetLastError());
         return 1;
     }
 
-    struct addrinfo* tmp = nullptr;
     struct addrinfo* pGaiRes = NL::getUdpServerAddrInfo();
-    for (tmp = pGaiRes; tmp != nullptr; tmp = tmp->ai_next) {
+    if (pGaiRes == nullptr) {
+        ::printf("error in getaddrinfo, %d\n", ::WSAGetLastError());
+        return -1;
+    }
+    struct addrinfo* tmp = pGaiRes;
+    for (; tmp != nullptr; tmp = tmp->ai_next) {
         if (tmp->ai_family == AF_INET) break;
     }
 
     if (tmp == nullptr) {
-        ::printf("can't find suitable addrinfo\n");
-        freeaddrinfo(pGaiRes);
+        ::printf("cannot find suitable addrinfo\n");
+        ::freeaddrinfo(pGaiRes);
         return 1;
     }
 
@@ -67,16 +71,24 @@ int main()
         return 1;
     }
 
+
+    NL::printAddrInfo(tmp);
+    wchar_t inetAddrBuf[128] = { 0 };
+    ::InetNtopW(AF_INET, &(((struct sockaddr_in*)(tmp->ai_addr))->sin_addr), inetAddrBuf, 128);
+    unsigned short port = ::htons(((struct sockaddr_in*)(tmp->ai_addr))->sin_port);
+    ::printf("listening on %ls:%hu\n", inetAddrBuf, port);
+
     long long bufLen = 2048;
     std::unique_ptr<char[]> recvBuf = std::make_unique<char[]>(bufLen);
     long long received = 0;
-    struct sockaddr_in* from = nullptr;
+    struct sockaddr_in from;
     while (true) {
-        received = NL::simpleUdpReceive(listenSock, recvBuf.get(), bufLen, &from);
+        ::memset(recvBuf.get(), 0, 2048);
+        received = NL::simpleUdpReceive(listenSock, recvBuf.get(), bufLen, from);
         wchar_t inetAddrBuf[128] = { 0 };
-        ::InetNtopW(AF_INET, &(from->sin_addr), inetAddrBuf, 128);
-        ::wprintf(L"received from %s\n", inetAddrBuf);
-        ::printf("%s\n", recvBuf.get());
+        ::InetNtopW(AF_INET, &(from.sin_addr), inetAddrBuf, 128);
+        ::wprintf(L"received from %s:\n", inetAddrBuf);
+        ::puts(recvBuf.get());
 
         g_mtx.lock();
         bool doWorkValue = g_doWork;
@@ -84,7 +96,7 @@ int main()
 
         if (!doWorkValue) break;
 #ifdef _WIN32
-        Sleep(500);
+        ::Sleep(500);
 #endif
     }
 

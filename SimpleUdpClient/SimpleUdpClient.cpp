@@ -7,109 +7,151 @@
 namespace NL = MyNetLib;
 
 //unsigned short const g_port = 27182;
+
+/* symbol in codepage      | 128 to 175 inclusive                     175 |                             */
+/* symbol in codepage      |                                              || 224 to 252 inclusive  252 |*/
+/* index in string         |                                              || 48                        |*/
+/*                         v                                              vv                           v*/
+char const * g_cyrillic = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяЁёЄєЇїЎў°∙·√№";
+
 char const * g_table1251[] = {
-       "000\0", "001\0", "002\0", "003\0", "004\0", "005\0", "006\0", "007\0", "008\0", "009\0", 
-       "\\n  \0", "011\0", "012\0", "013\0", "014\0", "015\0", "016\0", "017\0", "018\0", "019\0", 
-       "020\0", "021\0", "022\0", "023\0", "024\0", "025\0", "026\0", "027\0", "028\0", "029\0", 
-       "030\0", "031\0", " _ \0", "!  \0", "\"  \0", "#  \0", "$  \0", "%  \0", "&  \0", "'  \0", 
-       "(  \0", ")  \0", "*  \0", "+  \0", ",  \0", "-  \0", ".  \0", "/  \0", "0  \0", "1  \0", 
-/*5*/  "2  \0", "3  \0", "4  \0", "5  \0", "6  \0", "7  \0", "8  \0", "9  \0", ":  \0", ";  \0", 
-       "< \0", "=  \0", ">  \0", "?  \0", "@  \0", "A  \0", "B  \0", "C  \0", "D  \0", "E  \0", 
-       "F  \0", "G  \0", "H  \0", "I  \0", "J  \0", "K  \0", "L  \0", "M  \0", "N  \0", "O  \0", 
-       "P  \0", "Q  \0", "R  \0", "S  \0", "T  \0", "U  \0", "V  \0", "W  \0", "X  \0", "Y  \0", 
-       "Z  \0", "[  \0", "\\  \0", "]  \0", "^  \0", "___\0", "096\0", "a  \0", "b  \0", "c  \0", 
-/*10*/ "d  \0", "e  \0", "f  \0", "g  \0", "h  \0", "105\0", "106\0", "107\0", "108\0", "109\0", 
-       "110\0", "111\0", "112\0", "113\0", "114\0", "115\0", "116\0", "117\0", "118\0", "119\0", 
-       "x  \0", "y  \0", "z  \0", "{  \0", "|  \0", "}  \0", "126\0", "127\0", "A  \0", "Б  \0", 
-       "В  \0", "Г  \0", "Д  \0", "Е  \0", "Ж  \0", "З  \0", "И  \0", "Й  \0", "К  \0", "Л  \0", 
-       "М  \0", "Н  \0", "О  \0", "П  \0", "Р  \0", "С  \0", "T  \0", "У  \0", "Ф  \0", "Х  \0", 
-/*15*/ "Ц  \0", "Ч  \0", "Ш  \0", "Щ  \0", "Ъ  \0", "Ы  \0", "Ь  \0", "Э  \0", "Ю  \0", "Я  \0", 
-       "а  \0", "б  \0", "в  \0", "г  \0", "д  \0", "е  \0", "ж  \0", "з  \0", "и  \0", "й  \0", 
-       "к  \0", "л  \0", "м  \0", "н  \0", "о  \0", "п  \0", "\u2591  \0", "\u2592  \0", "\u2593  \0", "179\0", 
-       "180\0", "181\0", "182\0", "183\0", "184\0", "185\0", "186\0", "187\0", "188\0", "189\0", 
-       "190\0", "191\0", "192\0", "193\0", "194\0", "195\0", "196\0", "197\0", "198\0", "199\0", 
-/*20*/ "200\0", "201\0", "202\0", "203\0", "204\0", "205\0", "206\0", "207\0", "208\0", "209\0", 
-       "210\0", "211\0", "212\0", "213\0", "214\0", "215\0", "216\0", "217\0", "218\0", "219\0", 
-       "220\0", "221\0", "222\0", "223\0", "р  \0", "с  \0", "т  \0", "у  \0", "ф  \0", "х  \0", 
-       "ц  \0", "ч  \0", "ш  \0", "щ  \0", "ъ  \0", "ы  \0", "ь  \0", "э  \0", "ю  \0", "я  \0", 
-       "Ё  \0", "ё  \0", "242\0", "243\0", "244\0", "245\0", "246\0", "247\0", "248\0", "249\0", 
-/*25*/ "250\0", "251\0", "№  \0", "253\0", "254\0", "255\0", "256\0", "257\0", "258\0", "259\0", 
-       "Unk\0"
+          "\0",   "\\1",   "\\2",   "\\3",   "\\4",   "\\5",   "\\6",   "\\7",    "\b",    "\t",
+          "\n",    "\v",    "\f",    "\r",  "\\14",  "\\15",  "\\16",  "\\17",  "\\18",  "\\19",
+        "\\20",  "\\21",  "\\22",  "\\23",  "\\24",  "\\25",  "\\26",  "\\27",  "\\28",  "\\29",
+        "\\30",  "\\31",     "_",     "!",    "\"",     "#",     "$",     "%",     "&",     "'",
+           "(",     ")",     "*",     "+",     ",",     "-",     ".",     "/",     "0",     "1",
+/*5*/      "2",     "3",     "4",     "5",     "6",     "7",     "8",     "9",     ":",     ";",
+           "<",     "=",     ">",     "?",     "@",     "A",     "B",     "C",     "D",     "E",
+           "F",     "G",     "H",     "I",     "J",     "K",     "L",     "M",     "N",     "O",
+           "P",     "Q",     "R",     "S",     "T",     "U",     "V",     "W",     "X",     "Y",
+           "Z",     "[",    "\\",     "]",     "^",     " ",     "`",     "a",     "b",     "c",
+/*10*/     "d",     "e",     "f",     "g",     "h",     "i",     "j",     "k",     "l",     "m",
+           "n",     "o",     "p",     "q",     "r",     "s",     "t",     "u",     "v",     "w",
+           "x",     "y",     "z",     "{",     "|",     "}",     "~", "\\127",     "A",     "Б",
+           "В",     "Г",     "Д",     "Е",     "Ж",     "З",     "И",     "Й",     "К",     "Л",
+           "М",     "Н",     "О",     "П",     "Р",     "С",     "T",     "У",     "Ф",     "Х",
+/*15*/     "Ц",     "Ч",     "Ш",     "Щ",     "Ъ",     "Ы",     "Ь",     "Э",     "Ю",     "Я",
+           "а",     "б",     "в",     "г",     "д",     "е",     "ж",     "з",     "и",     "й",
+           "к",     "л",     "м",     "н",     "о",     "п", "\\176", "\\177", "\\178", "\\179",
+       "\\180", "\\181", "\\182", "\\183", "\\184", "\\185", "\\186", "\\187", "\\188", "\\189",
+       "\\190", "\\191", "\\192", "\\193", "\\194", "\\195", "\\196", "\\197", "\\198", "\\199",
+/*20*/ "\\200", "\\201", "\\202", "\\203", "\\204", "\\205", "\\206", "\\207", "\\208", "\\209",
+       "\\210", "\\211", "\\212", "\\213", "\\214", "\\215", "\\216", "\\217", "\\218", "\\219",
+       "\\220", "\\221", "\\222", "\\223",     "р",     "с",     "т",     "у",     "ф",     "х",
+           "ц",     "ч",     "ш",     "щ",     "ъ",     "ы",     "ь",     "э",     "ю",     "я",
+           "Ё",     "ё",     "Є",     "є",     "Ї",     "ї",     "Ў",     "ў",     "°", "\\249",
+/*25*/ "\\250", "\\251",     "№", "\\253", "\\254", "\\255", "\\256", "\\257", "\\258", "\\259",
+         "Unk"
 };
 
-void convertEnc(char* dest, int destLen, char const* src, int srcLen) {
 
-}
+void convertEnc(char* dest, char const* src) {
 
-char const * cp866ToCp1251(char c) {
-    unsigned char idx = c;
-    if (idx > 0 && idx < 260) {
-        return g_table1251[idx];
+    int destIdx = 0;
+    for (char const * c = src; *c != '\0'; c++) {
+        unsigned char const curCharVal = *c;
+        //printf("c is %hhu\n", curCharVal);
+        if (curCharVal < 127) {
+            dest[destIdx] = curCharVal;
+            destIdx += 1;
+        }
+        else if (curCharVal >= 128 && curCharVal <= 175) {
+            dest[destIdx] = g_cyrillic[curCharVal - 128];
+            destIdx += 1;
+        }
+        else if (curCharVal >= 224 && curCharVal <= 252) {
+            dest[destIdx] = g_cyrillic[curCharVal - 224 + 48];
+            destIdx += 1;
+        }
+        else {
+            puts("converting");
+            char const* converted = (curCharVal > 0 && curCharVal < 260)
+                                  ? g_table1251[curCharVal]
+                                  : g_table1251[260];
+            size_t strLen = ::strnlen_s(converted, 6);
+            ::strcpy_s(dest + destIdx, 2048 - destIdx - 1, converted);
+            destIdx += strLen;
+        }
     }
-    return g_table1251[260];
 }
 
 int main()
 {
-    setlocale(LC_ALL, "Russian");
+    //char * oldLocale = setlocale(LC_ALL, "Russian");
+    //printf("oldLocale   %s\n", oldLocale);
+
+    //char const * oldLocale = setlocale(LC_CTYPE, nullptr);
+    //printf("oldLocale %s\n", oldLocale);
+    //if (oldLocale != nullptr && 0 == strcmp(oldLocale, "C")) {
+    //    puts("old locale is C locale");
+    //}
+    //setlocale(LC_ALL, "Russian");
+    //char const * newLocale = setlocale(LC_ALL, "Russian");
+    //printf("newLocale %s\n", newLocale);
+    //if (newLocale != nullptr && nullptr != strstr(newLocale, "Russian")) {
+    //    puts("NEW locale is Russian locale");
+    //}
+
     NL::Autocleanup a;
     int ret = a.init();
     if (ret != 0) {
-        ::printf("this is horosho in WSAStartup, %d\n", ::WSAGetLastError());
+        ::printf("error in WSAStartup, %d\n", ::WSAGetLastError());
         return -1;
     }
 
     struct addrinfo * pGaiRes = NL::getUdpClientAddrInfo("localhost");
     if (pGaiRes == nullptr) {
-        ::printf("this is horosho in getaddrinfo, %d\n", ::WSAGetLastError());
+        ::printf("error in getaddrinfo, %d\n", ::WSAGetLastError());
         return -1;
     }
-    struct addrinfo* chosenAddrInfo = nullptr;
     struct addrinfo* tmp = pGaiRes;
     for (; tmp != nullptr; tmp = tmp->ai_next) {
-        if (tmp->ai_family == AF_INET) {
-            chosenAddrInfo = tmp;
-            break;
-        }
+        if (tmp->ai_family == AF_INET) break;
     }
 
-    if (chosenAddrInfo == nullptr) {
+    if (tmp == nullptr) {
         ::printf("cannot find suitable addrinfo\n");
         ::freeaddrinfo(pGaiRes);
         return -1;
     }
 
-    SOCKET sendSock = ::socket(chosenAddrInfo->ai_family, chosenAddrInfo->ai_socktype, chosenAddrInfo->ai_protocol);
+    SOCKET sendSock = ::socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
     if (sendSock == INVALID_SOCKET) {
-        ::printf("this is horosho in socket, %d\n", ::WSAGetLastError());
+        ::printf("error in socket, %d\n", ::WSAGetLastError());
         ::freeaddrinfo(pGaiRes);
         return -1;
     }
 
-    struct sockaddr_in* saTo = (sockaddr_in*)chosenAddrInfo->ai_addr;
+    struct sockaddr_in saTo = *(sockaddr_in*)tmp->ai_addr;
     wchar_t inetAddrBuf[128] = { 0 };
-    ::InetNtopW(AF_INET, &(saTo->sin_addr), inetAddrBuf, 128);
+    ::InetNtopW(AF_INET, &(saTo.sin_addr), inetAddrBuf, 128);
+
+    NL::printAddrInfo(tmp);
+	unsigned short port = ::ntohs(saTo.sin_port);
+	::printf("Sending to %ls:%hu\n", inetAddrBuf, port);
 
     long long bufLen = 2048;
     std::unique_ptr<char[]> scanBuf = std::make_unique<char[]>(bufLen);
     std::unique_ptr<char[]> buf1251 = std::make_unique<char[]>(bufLen*4);
     while (true) {
-            ::memset(scanBuf.get(), 0, bufLen);
+        ::memset(scanBuf.get(), 0, bufLen);
+
+        ::fgets(scanBuf.get(), bufLen - 1, stdin);
+
+        char const* ptr = buf1251.get();
+        if (false) {
             ::memset(buf1251.get(), 0, bufLen*4);
-            ::fgets(scanBuf.get(), bufLen - 1, stdin);
-            int buf1251Idx = 0;
-            for (char * c = scanBuf.get(); *c != '\0'; c++) {
-                char const * converted = cp866ToCp1251(*c);
-                ::strcpy_s(buf1251.get() + buf1251Idx, 2048 - buf1251Idx - 1, converted);
-                buf1251Idx += 3;
-            }
-            char const* ptr = buf1251.get();
-            int len = buf1251Idx;
-            //char const* ptr = scanBuf.get();
-            //int len = strlen(ptr);
-            ::printf("%s sending to %ws\n", ptr, inetAddrBuf);
-        ::sendto(sendSock, ptr, len, 0, (sockaddr*)&saTo, sizeof(sockaddr_in));
+            convertEnc(buf1251.get(), scanBuf.get());
+            ptr = buf1251.get();
+        }
+        else {
+            ptr = scanBuf.get();
+        }
+        int len = strlen(ptr);
+
+        ::sendto(sendSock, ptr, len, 0, (struct sockaddr*)&saTo, sizeof(sockaddr_in));
     }
 
     return 0;
 }
+/* vim: set expandtab tabstop=4 shiftwidth=4 : */

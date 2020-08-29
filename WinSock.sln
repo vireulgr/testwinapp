@@ -16,6 +16,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BinaryCollection", "BinaryCollection\BinaryCollection.vcxproj", "{11BC4C2B-0DF8-4B49-9718-8C279E80DCA8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BinaryCollection_TEST", "BinaryCollection_TEST\BinaryCollection_TEST.vcxproj", "{25C7C146-EB62-40D1-BD92-1664C2610C19}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleUdpServer", "SimpleUdpServer\SimpleUdpServer.vcxproj", "{1DCA6149-9506-4724-9D5A-8A4BB84FA45A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleUdpClient", "SimpleUdpClient\SimpleUdpClient.vcxproj", "{119015C4-650C-4D0E-814B-C7CE38519825}"
